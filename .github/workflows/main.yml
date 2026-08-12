@@ -22,7 +22,15 @@ jobs:
         "@
         Set-Content -Path "ngrok.yml" -Value $config
         Start-Process ngrok -ArgumentList "start --config=ngrok.yml rdp --region us"
-        Start-Sleep -Seconds 10
+        Start-Sleep -Seconds 15
+        
+        # This new command fetches the secret port and prints it directly in your logs!
+        $tunnels = Invoke-RestMethod -Uri "http://127.0.0"
+        $publicUrl = $tunnels.tunnels[0].public_url
+        Write-Host "=========================================="
+        Write-Host "YOUR PHONE CONNECTION ADDRESS IS:"
+        Write-Host $publicUrl
+        Write-Host "=========================================="
         
     - name: Configure Windows User and RDP
       run: |
@@ -37,5 +45,6 @@ jobs:
         while ((Get-Date) -lt $timeout) {
             Start-Sleep -Seconds 30
         }
+
 
 
