@@ -1,0 +1,30 @@
+name: Windows 11 RDP
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - name: Install Ngrok
+      run: |
+        choco install ngrok -y
+        
+    - name: Authenticate Ngrok
+      run: |
+        ngrok config add-authtoken ${{ secrets.NGORK_AUTH_TOKEN }}
+        
+    - name: Configure Windows User and RDP
+      run: |
+        $Password = ConvertTo-SecureString "RdpPassword123!" -AsPlainText -Force
+        Set-LocalUser -Name "runneradmin" -Password $Password
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        
+    - name: Start RDP Tunnel and Keep Alive
+      run: |
+        Start-Process ngrok -ArgumentList "tcp 3389 --region us"
+        Start-Sleep -Seconds 10
+        $timeout = (Get-Date).AddHours(5)
+        while ((Get-Date) -lt $timeout) {
+            Start-Sleep -Seconds 30
+        }
